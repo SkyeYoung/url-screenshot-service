@@ -25,13 +25,13 @@ func getUrlFromRequest(c *fiber.Ctx) (string, error) {
 
 func main() {
 	helper.SetupLogger()
-	cfg, err := helper.SetupConfig()
-	r2.SetupSession(cfg)
-
 	logger := helper.GetLogger()
+
+	cfg, err := helper.SetupConfig()
 	if err != nil {
 		logger.Fatal(err)
 	}
+	r2.SetupSession(cfg)
 
 	app := fiber.New()
 	app.Post("/", func(c *fiber.Ctx) error {
