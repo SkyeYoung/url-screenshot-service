@@ -5,7 +5,7 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
-func browserCtx(callback func(page playwright.Page)) {
+func browserCtx(callback func(page playwright.Page) error) error {
 	logger := helper.GetLogger()
 	pw, err := playwright.Run()
 
@@ -26,7 +26,7 @@ func browserCtx(callback func(page playwright.Page)) {
 		logger.Fatalf("could not create page: %v", err)
 	}
 
-	callback(page)
+	e := callback(page)
 
 	if err = browser.Close(); err != nil {
 		logger.Fatalf("could not close browser: %v", err)
@@ -34,4 +34,6 @@ func browserCtx(callback func(page playwright.Page)) {
 	if err = pw.Stop(); err != nil {
 		logger.Fatalf("could not stop Playwright: %v", err)
 	}
+
+	return e
 }

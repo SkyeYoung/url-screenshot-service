@@ -2,34 +2,39 @@ package screenshot
 
 import (
 	"errors"
+	"path"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/playwright-community/playwright-go"
 )
 
-func Screenshot(url string) (path string, err error) {
+func Screenshot(url, tmpFolder string) (string, error) {
 	logger := helper.GetLogger()
+	var img string
 
-	p := helper.WrapImgExt(helper.EncodeImgName(path))
-
-	browserCtx(func(page playwright.Page) {
-		if _, e := page.Goto(path, playwright.PageGotoOptions{
+	err := browserCtx(func(page playwright.Page) error {
+		if _, e := page.Goto(url, playwright.PageGotoOptions{
 			WaitUntil: playwright.WaitUntilStateNetworkidle,
 		}); e != nil {
-			err = errors.New("could not goto url: " + path)
+			err := errors.New("could not goto url: " + url)
 			logger.Warn(err)
-			return
+			return err
 		}
 
-		if _, err = page.Screenshot(playwright.PageScreenshotOptions{
+		img = helper.WrapImgExt(helper.EncodeImgName(url))
+		p := path.Join(tmpFolder, img)
+		if _, err := page.Screenshot(playwright.PageScreenshotOptions{
 			Path:    playwright.String(p),
 			Quality: playwright.Int(50),
 			Type:    helper.PlaywrightImgExt(),
 		}); err != nil {
-			err = errors.New("could not create screenshot of " + path + ", err:" + err.Error())
+			err = errors.New("could not create screenshot of " + url + ", err:" + err.Error())
 			logger.Error(err)
+			return err
 		}
+
+		return nil
 	})
 
-	return p, err
+	return img, err
 }

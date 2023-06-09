@@ -1,3 +1,5 @@
 /tmp
+/screenshot
 *.log
 *.env
+config.json

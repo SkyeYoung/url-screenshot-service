@@ -2,86 +2,68 @@ package main
 
 import (
 	"errors"
-	"os"
+	"path"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
+	"github.com/SkyeYoung/url-screenshot-service/internal/r2"
 	"github.com/SkyeYoung/url-screenshot-service/internal/screenshot"
 	"github.com/gofiber/fiber/v2"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 type Website struct {
 	Url string `json:"url"`
 }
 
+func getUrlFromRequest(c *fiber.Ctx) (string, error) {
+	d := new(Website)
+	if err := c.BodyParser(d); err != nil {
+		return "", errors.New("invalid url")
+	}
+
+	return helper.GetValidUrl(d.Url)
+}
+
 func main() {
 	helper.SetupLogger()
-	app := fiber.New()
+
 	logger := helper.GetLogger()
+	cfg, err := helper.GetConfig()
+	r2.SetupSession(cfg)
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		logger.Info("Hello, World 👋!")
-		msg := "Hello, World 👋!"
-		return c.SendString(msg)
-	})
+	if err != nil {
+		logger.Fatal(err)
+	}
 
+	app := fiber.New()
 	app.Post("/", func(c *fiber.Ctx) error {
-		url, err := helper.GetValidUrl(func() string {
-			d := new(Website)
-			if err := c.BodyParser(d); err != nil {
-				return "invalid" // will cause error
-			}
-			return d.Url
-		}())
+		url, err := getUrlFromRequest(c)
 		if err != nil {
 			logger.Error(err)
 			return err
 		}
 
-		sess := session.Must(session.NewSession(&aws.Config{
-			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-			Endpoint:    aws.String(endPoint),
-			Region:      aws.String("us-east-1"),
-		}))
-
-		svc := s3.New(sess)
-		info, err := svc.GetObjectAttributes(&s3.GetObjectAttributesInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String(prefix + helper.EncodeImgNameAddExt(url)),
-		})
-
-		if err != nil {
+		key := path.Join(cfg.Prefix, helper.EncodeImgNameAddExt(url))
+		logger.Info(url + " generated key: " + key)
+		logger.Info("checking if screenshot exists")
+		if _, err := r2.GetObjectAttributes(cfg, &key); err == nil {
+			logger.Info("screenshot already exists, returning url: " + url)
+			return c.SendString(url)
+		} else {
+			logger.Info("screenshot does not exist, continuing")
+			logger.Info(err)
 		}
-		info.LastModified
 
 		logger.Infof("trying to get screeshot of %v", url)
-		path, err := screenshot.Screenshot(url)
-		if err != nil {
+		if _, err := screenshot.Screenshot(url, cfg.Prefix); err != nil {
 			return err
 		}
-
-		file, err := os.Open(path)
-		if err != nil {
-			return errors.New("failed to open file " + path)
+		if info, err := r2.Upload(cfg, &key); err != nil {
+			return err
+		} else {
+			logger.Infof("screenshot uploaded to %v", info.Location)
+			return c.SendString(url)
 		}
-		uploader := s3manager.NewUploader(sess)
-		res, err := uploader.Upload(&s3manager.UploadInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String(path),
-			Body:   file,
-		})
-		if err != nil {
-			return errors.New("failed to upload file " + path)
-		}
-		logger.Infof("file uploaded to, %s\n", aws.StringValue(&res.Location))
-
-		return c.SendString(url)
 	})
 
-	logger.Fatal(app.Listen(":3004"))
+	logger.Fatal(app.Listen(":" + cfg.Port))
 }
