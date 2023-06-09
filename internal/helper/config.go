@@ -13,7 +13,7 @@ type Config struct {
 	Port      string
 }
 
-func GetConfig() (*Config, error) {
+func SetupConfig() (*Config, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
 	viper.AddConfigPath(".")

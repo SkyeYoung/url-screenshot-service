@@ -25,11 +25,10 @@ func getUrlFromRequest(c *fiber.Ctx) (string, error) {
 
 func main() {
 	helper.SetupLogger()
-
-	logger := helper.GetLogger()
-	cfg, err := helper.GetConfig()
+	cfg, err := helper.SetupConfig()
 	r2.SetupSession(cfg)
 
+	logger := helper.GetLogger()
 	if err != nil {
 		logger.Fatal(err)
 	}
