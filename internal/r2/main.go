@@ -16,14 +16,6 @@ var (
 	sess *session.Session
 )
 
-func convertToPtrSlice(slice []string) []*string {
-	ptrSlice := make([]*string, len(slice))
-	for i, val := range slice {
-		ptrSlice[i] = &val
-	}
-	return ptrSlice
-}
-
 func SetupSession(cfg *helper.Config) {
 	sess = session.Must(session.NewSession(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(cfg.AccessKey, cfg.SecretKey, ""),
