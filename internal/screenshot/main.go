@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func Screenshot(url, tmpFolder string) (string, error) {
+func Screenshot(url, folderPath string) (string, error) {
 	logger := helper.GetLogger("server").With(zap.Namespace("screenshot"))
 
 	var img string
@@ -23,7 +23,7 @@ func Screenshot(url, tmpFolder string) (string, error) {
 		}
 
 		img = helper.WrapImgExt(helper.EncodeImgName(url))
-		p := path.Join(tmpFolder, img)
+		p := path.Join(folderPath, img)
 		if _, err := page.Screenshot(playwright.PageScreenshotOptions{
 			Path:    playwright.String(p),
 			Quality: playwright.Int(50),

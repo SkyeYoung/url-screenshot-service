@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/sha512"
 	"crypto/subtle"
+	"os"
 	"path"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
@@ -33,14 +34,17 @@ func Start(cfg *helper.Config) {
 		},
 	}))
 
-	// routes
+	// root routes
 	if cfg.EnableMetrics {
 		app.Get("/metrics", monitor.New())
 	}
 
+	// screenshot routes
 	r2 := r2.New(cfg)
 	logger := helper.GetLogger("server")
-	app.Post("/", func(c *fiber.Ctx) error {
+	screenshotApi := app.Group("/screenshot")
+
+	screenshotApi.Post("/", func(c *fiber.Ctx) error {
 		url, err := getUrlFromRequest(c)
 		if err != nil {
 			logger.Error(err)
@@ -63,13 +67,38 @@ func Start(cfg *helper.Config) {
 		if _, err := screenshot.Screenshot(url, cfg.Prefix); err != nil {
 			return err
 		}
-		if info, err := r2.UploadObject(&key); err != nil {
+
+		info, err := r2.UploadObject(&key)
+		if err != nil {
 			return err
-		} else {
-			logger.Infof("screenshot uploaded to %v", info.Location)
-			logger.Info("returning url: " + url)
-			return c.SendString(url)
 		}
+		logger.Infof("screenshot uploaded to %v", info.Location)
+
+		if cfg.RmImgAfterUpload {
+			logger.Infof("removing local screenshot of %v", url)
+			if err := os.Remove(key); err != nil {
+				return err
+			}
+		}
+
+		logger.Info("returning url: " + url)
+		return c.SendString(url)
+	})
+
+	screenshotApi.Delete("/", func(c *fiber.Ctx) error {
+		url, err := getUrlFromRequest(c)
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+		logger.Infof("processing request from %v for %v", c.IP(), url)
+
+		key := path.Join(cfg.Prefix, helper.EncodeImgNameAddExt(url))
+		logger.Info(url + " generated key: " + key)
+
+		logger.Info("trying to delete screenshot key")
+		_, err = r2.DeleteObject(&key)
+		return err
 	})
 
 	logger.Fatal(app.Listen(":" + cfg.Port))

@@ -7,16 +7,19 @@ import (
 )
 
 type Config struct {
-	AccessKey     string `json:"accessKey"`
-	SecretKey     string `json:"secretKey"`
-	EndPoint      string `json:"endPoint"`
-	Bucket        string `json:"bucket"`
-	Prefix        string `json:"prefix"` //  r2 prefix, also used for screenshot file folder path
-	Port          string `json:"port"`
-	ApiKey        string `json:"apiKey"`
-	EnableMetrics bool   `json:"enableMetrics"`
-	LogPath       string `json:"logPath"`
-	LogLevel      string `json:"logLevel"`
+	AccessKey string `json:"accessKey"`
+	SecretKey string `json:"secretKey"`
+	EndPoint  string `json:"endPoint"`
+	Bucket    string `json:"bucket"`
+	Prefix    string `json:"prefix"` //  r2 prefix, also used for screenshot file folder path
+	Port      string `json:"port"`
+
+	LogPath  string `json:"logPath"`
+	LogLevel string `json:"logLevel"`
+
+	ApiKey           string `json:"apiKey"`
+	EnableMetrics    bool   `json:"enableMetrics"`
+	RmImgAfterUpload bool   `json:"rmImgAfterUpload"`
 }
 
 func initDir(path string) error {
@@ -29,12 +32,13 @@ func initDir(path string) error {
 func SetupConfig() (*Config, error) {
 	// default config
 	cfg := Config{
-		Prefix:        "screenshot",
-		Port:          "8080",
-		ApiKey:        "123456",
-		EnableMetrics: false,
-		LogPath:       "log",
-		LogLevel:      "info",
+		Prefix:           "screenshot",
+		Port:             "8080",
+		ApiKey:           "123456",
+		LogPath:          "log",
+		LogLevel:         "info",
+		EnableMetrics:    false,
+		RmImgAfterUpload: false,
 	}
 
 	viper.SetConfigName("config")
