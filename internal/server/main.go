@@ -56,8 +56,7 @@ func Start(cfg *helper.Config) {
 			logger.Info("screenshot already exists, returning url: " + url)
 			return c.SendString(url)
 		} else {
-			logger.Info("screenshot does not exist, continuing")
-			logger.Info(err)
+			logger.Infof("screenshot does not exist, because: %v", err)
 		}
 
 		logger.Infof("trying to get screeshot of %v", url)
@@ -68,6 +67,7 @@ func Start(cfg *helper.Config) {
 			return err
 		} else {
 			logger.Infof("screenshot uploaded to %v", info.Location)
+			logger.Info("returning url: " + url)
 			return c.SendString(url)
 		}
 	})

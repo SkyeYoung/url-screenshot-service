@@ -31,6 +31,7 @@ func SetupConfig() (*Config, error) {
 	cfg := Config{
 		Prefix:        "screenshot",
 		Port:          "8080",
+		ApiKey:        "123456",
 		EnableMetrics: false,
 		LogPath:       "log",
 		LogLevel:      "info",

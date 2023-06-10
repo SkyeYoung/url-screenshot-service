@@ -72,8 +72,8 @@ func GetLogger(key string) *zap.SugaredLogger {
 			panic(err)
 		}
 		instances[key] = ins
+		defer instances[key].Infof("logger (%v) initialized", key)
 	})
 
-	defer instances[key].Infof("logger (%v) initialized", key)
 	return instances[key]
 }
