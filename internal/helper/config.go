@@ -5,12 +5,12 @@ import (
 )
 
 type Config struct {
-	AccessKey string
-	SecretKey string
-	EndPoint  string
-	Bucket    string
-	Prefix    string
-	Port      string
+	AccessKey string `json:"accessKey"`
+	SecretKey string `json:"secretKey"`
+	EndPoint  string `json:"endPoint"`
+	Bucket    string `json:"bucket"`
+	Prefix    string `json:"prefix"`
+	Port      string `json:"port"`
 }
 
 func SetupConfig() (*Config, error) {
