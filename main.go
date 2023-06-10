@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
-	"github.com/SkyeYoung/url-screenshot-service/internal/server"
+	"github.com/SkyeYoung/url-screenshot-service/server"
 )
 
 func main() {
