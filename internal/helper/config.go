@@ -45,6 +45,7 @@ func SetupConfig() (*Config, error) {
 	viper.SetConfigType("json")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
+	viper.WatchConfig()
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, err
