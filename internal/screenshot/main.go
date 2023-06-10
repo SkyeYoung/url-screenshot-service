@@ -6,12 +6,13 @@ import (
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/playwright-community/playwright-go"
+	"go.uber.org/zap"
 )
 
 func Screenshot(url, tmpFolder string) (string, error) {
-	logger := helper.GetLogger()
-	var img string
+	logger := helper.GetLogger("server").With(zap.Namespace("screenshot"))
 
+	var img string
 	err := browserCtx(func(page playwright.Page) error {
 		if _, e := page.Goto(url, playwright.PageGotoOptions{
 			WaitUntil: playwright.WaitUntilStateNetworkidle,

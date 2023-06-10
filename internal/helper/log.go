@@ -2,6 +2,8 @@ package helper
 
 import (
 	"os"
+	"path"
+	"sync"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -10,32 +12,34 @@ import (
 )
 
 var (
-	logger *zap.SugaredLogger
+	once      sync.Once
+	instances = make(map[string]*zap.SugaredLogger)
+	logPath   string
+	level     zap.AtomicLevel
 )
 
-// GetLogger to get logger instance and creates a new instance when it is not initialized
-func GetLogger() *zap.SugaredLogger {
-	return logger
-}
-
-// SetupLogger will create a single instance of logger based on the configuration
-func SetupLogger() error {
-	var (
-		logPath = ".app.log"
-		level   zap.AtomicLevel
-		err     error
-	)
+func SetupLogger(cfg *Config) (err error) {
+	// check log path
+	if info, err := os.Stat(cfg.LogPath); err != nil || os.IsNotExist(err) || !info.IsDir() {
+		return errors.Wrap(err, "failed to check log path")
+	}
+	logPath = cfg.LogPath
 
 	// convert log level to zap format
-	if level, err = zap.ParseAtomicLevel("info"); err != nil {
+	if level, err = zap.ParseAtomicLevel(cfg.LogLevel); err != nil {
 		return errors.Wrap(err, "failed to parse log level")
 	}
 
+	return nil
+}
+
+func getLoggerCore(key string) (*zap.SugaredLogger, error) {
+	f := path.Join(logPath, key+".log")
 	encConfig := zap.NewProductionEncoderConfig()
 	coreFile := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encConfig),
 		zapcore.AddSync(&lumberjack.Logger{
-			Filename:   logPath,
+			Filename:   f,
 			MaxSize:    10, // maximum size of a single log file (Mbytes)
 			MaxBackups: 10, // maximum number of logs to be saved
 			MaxAge:     30, // maximum number of days to keep logs
@@ -56,8 +60,20 @@ func SetupLogger() error {
 
 	// build logger
 	zapLog := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel))
-	defer zapLog.Sync()
 
-	logger = zapLog.Sugar()
-	return nil
+	defer zapLog.Sync()
+	return zapLog.Sugar(), nil
+}
+
+func GetLogger(key string) *zap.SugaredLogger {
+	once.Do(func() {
+		ins, err := getLoggerCore(key)
+		if err != nil {
+			panic(err)
+		}
+		instances[key] = ins
+	})
+
+	defer instances[key].Infof("logger (%v) initialized", key)
+	return instances[key]
 }

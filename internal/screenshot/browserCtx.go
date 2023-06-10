@@ -3,10 +3,11 @@ package screenshot
 import (
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/playwright-community/playwright-go"
+	"go.uber.org/zap"
 )
 
 func browserCtx(callback func(page playwright.Page) error) error {
-	logger := helper.GetLogger()
+	logger := helper.GetLogger("server").With(zap.Namespace("screenshot"))
 	pw, err := playwright.Run()
 
 	if err != nil {
