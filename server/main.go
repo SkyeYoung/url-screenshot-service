@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"os"
 	"path"
+	"sync"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/SkyeYoung/url-screenshot-service/internal/r2"
@@ -16,7 +17,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 )
 
-func Start(cfg *helper.Config) {
+func Start(cfg *helper.Config, wg *sync.WaitGroup) {
+	defer wg.Done()
 	app := fiber.New()
 
 	// middleware

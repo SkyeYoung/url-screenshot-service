@@ -6,20 +6,29 @@ import (
 	"github.com/spf13/viper"
 )
 
+type JobConfig struct {
+	Cron    string `json:"cron"`
+	Disable bool   `json:"disable"`
+}
+
 type Config struct {
+	// r2
 	AccessKey string `json:"accessKey"`
 	SecretKey string `json:"secretKey"`
 	EndPoint  string `json:"endPoint"`
 	Bucket    string `json:"bucket"`
 	Prefix    string `json:"prefix"` //  r2 prefix, also used for screenshot file folder path
 	Port      string `json:"port"`
-
+	// log
 	LogPath  string `json:"logPath"`
 	LogLevel string `json:"logLevel"`
-
+	// server
 	ApiKey           string `json:"apiKey"`
 	EnableMetrics    bool   `json:"enableMetrics"`
 	RmImgAfterUpload bool   `json:"rmImgAfterUpload"`
+	// scheduler
+	ClearLocalImgJob JobConfig `json:"clearLocalImgJob"`
+	UpdateR2ImgJob   JobConfig `json:"updateR2ImgJob"`
 }
 
 func initDir(path string) error {
@@ -39,6 +48,14 @@ func SetupConfig() (*Config, error) {
 		LogLevel:         "info",
 		EnableMetrics:    false,
 		RmImgAfterUpload: false,
+		ClearLocalImgJob: JobConfig{
+			Disable: false,
+			Cron:    "0 5 * * * *",
+		},
+		UpdateR2ImgJob: JobConfig{
+			Disable: false,
+			Cron:    "0 5 * * * *",
+		},
 	}
 
 	viper.SetConfigName("config")
