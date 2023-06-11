@@ -41,7 +41,7 @@ func (s *scheduler) Start(wg *sync.WaitGroup) {
 
 	jobs := map[string]quartz.Job{
 		"ClearLocalImgJob": new(job.ClearLocalImgJob),
-		// "UpdateR2ImgJob":   new(job.UpdateR2ImgJob),
+		"UpdateR2ImgJob":   new(job.UpdateR2ImgJob),
 	}
 	cfgr := reflect.Indirect(reflect.ValueOf(s.cfg))
 	for key, job := range jobs {
