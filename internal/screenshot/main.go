@@ -6,11 +6,10 @@ import (
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/playwright-community/playwright-go"
-	"go.uber.org/zap"
 )
 
 func Screenshot(url, folderPath string) (string, error) {
-	logger := helper.GetLogger("server").With(zap.Namespace("screenshot"))
+	logger := helper.GetLogger("server").Named("screenshot")
 
 	var img string
 	err := browserCtx(func(page playwright.Page) error {
