@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"reflect"
 	"sync"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
@@ -38,31 +39,21 @@ func (s *scheduler) Start(wg *sync.WaitGroup) {
 	logger.Info("Starting scheduler...")
 	sch.Start(ctx)
 
-	// jobs := []func() *job.JobIns{
-	// 	"ClearLocalImgJob": job.NewClearLocalImgJob,
-	// 	"UpdateR2ImgJob":   job.NewUpdateR2ImgJob,
-	// }
-	// cfgr := reflect.Indirect(reflect.ValueOf(s.cfg))
-	// for k := range jobs {
-	// 	info := cfgr.FieldByName(k).Interface().(helper.JobConfig)
-	// 	if !info.Disable {
-	// 		job := v()
-	// 		logger.Infof("Scheduling job `%v`...", job.Description())
-	// 		cron, err := quartz.NewCronTrigger(info.Cron)
-	// 		if err != nil {
-	// 			logger.Fatal(err)
-	// 		}
-	// 		sch.ScheduleJob(ctx, job, cron)
-	// 	}
-	// }
-	if !s.cfg.ClearLocalImgJob.Disable {
-		job := job.NewClearLocalImgJob()
-		logger.Infof("Scheduling job `%v`...", job.Description())
-		cron, err := quartz.NewCronTrigger(s.cfg.ClearLocalImgJob.Cron)
-		if err != nil {
-			logger.Fatal(err)
+	jobs := map[string]quartz.Job{
+		"ClearLocalImgJob": new(job.ClearLocalImgJob),
+		// "UpdateR2ImgJob":   new(job.UpdateR2ImgJob),
+	}
+	cfgr := reflect.Indirect(reflect.ValueOf(s.cfg))
+	for key, job := range jobs {
+		info := cfgr.FieldByName(key).Interface().(helper.JobConfig)
+		if !info.Disable {
+			logger.Infof("Scheduling job `%v`...", job.Description())
+			cron, err := quartz.NewCronTrigger(info.Cron)
+			if err != nil {
+				logger.Fatal(err)
+			}
+			sch.ScheduleJob(ctx, job, cron)
 		}
-		sch.ScheduleJob(ctx, job, cron)
 	}
 
 	defer logger.Info("Scheduler stopped")

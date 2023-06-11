@@ -16,38 +16,35 @@ const (
 )
 
 type IJob interface {
+	Name() string
 	ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Config) (string, error)
 }
 
-type JobIns struct {
+type IJobIns interface {
 	quartz.Job
 	IJob
+}
+
+type JobIns struct {
+	IJobIns
 }
 
 func (j *JobIns) Key() int {
 	return quartz.HashCode(j.Description())
 }
 
-func (j *JobIns) Description() string {
-	return ""
-}
-
-func (j *JobIns) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Config) (string, error) {
-	return "", nil
-}
-
-func (j *JobIns) Execute(ctx context.Context) {
+func ExecuteWrapper(ctx context.Context, job IJobIns) {
 	cfg := ctx.Value(CFG).(*helper.Config)
-	logger := ctx.Value(LOGGER).(*zap.SugaredLogger)
+	logger := ctx.Value(LOGGER).(*zap.SugaredLogger).Named(job.Name())
 
-	logger.Infof("Job `%v` started", j.Job.Description())
+	logger.Infof("Job `%v` started", job.Description())
 
-	info, err := j.IJob.ExecuteCore(logger, cfg)
+	info, err := job.ExecuteCore(logger, cfg)
 	if err != nil {
-		logger.Errorf("Job `%v` failed: %v", j.Job.Description(), err)
+		logger.Errorf("Job `%v` failed: %v", job.Description(), err)
 		return
 	}
-	logger.Infof("Job `%v` result: %v", j.Job.Description(), info)
+	logger.Infof("Job `%v` result: %v", job.Description(), info)
 
-	logger.Infof("Job `%v` finished", j.Job.Description())
+	logger.Infof("Job `%v` finished", job.Description())
 }

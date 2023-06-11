@@ -1,13 +1,13 @@
 package job
 
 import (
+	"context"
 	"fmt"
 
 	"os"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/pkg/errors"
-	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 )
 
@@ -15,15 +15,16 @@ type ClearLocalImgJob struct {
 	JobIns
 }
 
-func NewClearLocalImgJob() *ClearLocalImgJob {
-	userType := &ClearLocalImgJob{}
-	userType.IJob = interface{}(userType).(IJob)
-	userType.Job = interface{}(userType).(quartz.Job)
-	return userType
+func (j *ClearLocalImgJob) Name() string {
+	return "ClearLocalImgJob"
 }
 
 func (j *ClearLocalImgJob) Description() string {
 	return "Clear local images."
+}
+
+func (j *ClearLocalImgJob) Execute(ctx context.Context) {
+	ExecuteWrapper(ctx, j)
 }
 
 func (j *ClearLocalImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Config) (string, error) {
