@@ -58,7 +58,7 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 		logger.Info(url + " generated key: " + key)
 
 		logger.Info("checking if screenshot key exists")
-		if _, err := r2.GetObject(&key); err == nil {
+		if _, err := r2.HeadObject(&key); err == nil {
 			logger.Info("screenshot already exists, returning url: " + url)
 			return c.SendString(url)
 		} else {
