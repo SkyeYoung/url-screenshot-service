@@ -65,14 +65,15 @@ func getLoggerCore(key string) (*zap.SugaredLogger, error) {
 }
 
 func GetLogger(key string) *zap.SugaredLogger {
-	val, _ := instances.LoadOrStore(key, func() *zap.SugaredLogger {
+	if _, ok := instances.Load(key); !ok {
 		ins, err := getLoggerCore(key)
 		if err != nil {
 			panic(err)
 		}
 		ins.Infof("logger (%v) initialized", key)
-		return ins.Named(key)
-	})
+		instances.Store(key, ins.Named(key))
+	}
 
-	return val.(func() *zap.SugaredLogger)()
+	val, _ := instances.Load(key)
+	return val.(*zap.SugaredLogger)
 }
