@@ -43,7 +43,7 @@ func (j *UpdateR2ImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Conf
 	}
 
 	for _, obj := range objs {
-		logger.Infof("downloading %v", *obj.Key)
+		logger.Infof("checking image key %v", *obj.Key)
 		url := strings.TrimPrefix(*obj.Key, cfg.Prefix+"/")
 		url = strings.TrimSuffix(url, "."+helper.GetImgExt())
 		logger.Infof("url: %v", url)
