@@ -1,0 +1,9 @@
+{
+  "accessKey": "",
+  "secretKey": "",
+  "endPoint": "",
+  "bucket": "",
+  "prefix": "",
+  "port": "8080",
+  "enableMetrics": true
+}
