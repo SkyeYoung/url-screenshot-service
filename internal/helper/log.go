@@ -73,6 +73,6 @@ func GetLogger(key string) *zap.SugaredLogger {
 		return ins.Named(key)
 	})
 
-	defer val.(*zap.SugaredLogger).Infof("logger (%v) initialized", key)
+	val.(*zap.SugaredLogger).Infof("logger (%v) initialized", key)
 	return val.(*zap.SugaredLogger)
 }
