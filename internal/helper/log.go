@@ -3,6 +3,7 @@ package helper
 import (
 	"os"
 	"path"
+	"sync"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -11,7 +12,7 @@ import (
 )
 
 var (
-	instances = make(map[string]*zap.SugaredLogger)
+	instances = sync.Map{}
 	logPath   string
 	level     zap.AtomicLevel
 )
@@ -64,14 +65,14 @@ func getLoggerCore(key string) (*zap.SugaredLogger, error) {
 }
 
 func GetLogger(key string) *zap.SugaredLogger {
-	if _, ok := instances[key]; !ok {
+	val, _ := instances.LoadOrStore(key, func() *zap.SugaredLogger {
 		ins, err := getLoggerCore(key)
 		if err != nil {
 			panic(err)
 		}
-		instances[key] = ins.Named(key)
-		defer instances[key].Infof("logger (%v) initialized", key)
-	}
+		return ins.Named(key)
+	})
 
-	return instances[key]
+	defer val.(*zap.SugaredLogger).Infof("logger (%v) initialized", key)
+	return val.(*zap.SugaredLogger)
 }
