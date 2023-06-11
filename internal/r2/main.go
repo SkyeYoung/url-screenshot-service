@@ -19,6 +19,8 @@ type r2 struct {
 
 type R2 interface {
 	GetObject(key *string) (*s3.GetObjectOutput, error)
+	HeadObject(key *string) (*s3.HeadObjectOutput, error)
+	ListObjects(prefix *string, filter func(obj *s3.Object) bool) ([]*s3.Object, error)
 	UploadObject(key *string) (*s3manager.UploadOutput, error)
 	DeleteObject(key *string) (*s3.DeleteObjectOutput, error)
 }
@@ -40,6 +42,37 @@ func (r *r2) GetObject(key *string) (*s3.GetObjectOutput, error) {
 		Bucket: aws.String(r.cfg.Bucket),
 		Key:    aws.String(*key),
 	})
+}
+
+func (r *r2) HeadObject(key *string) (*s3.HeadObjectOutput, error) {
+	svc := s3.New(r.sess)
+	return svc.HeadObject(&s3.HeadObjectInput{
+		Bucket: aws.String(r.cfg.Bucket),
+		Key:    aws.String(*key),
+	})
+}
+
+func (r *r2) ListObjects(prefix *string, filter func(obj *s3.Object) bool) ([]*s3.Object, error) {
+	svc := s3.New(r.sess)
+	var res []*s3.Object
+
+	err := svc.ListObjectsV2Pages(&s3.ListObjectsV2Input{
+		Bucket: aws.String(r.cfg.Bucket),
+		Prefix: aws.String(*prefix),
+	}, func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+		for _, obj := range page.Contents {
+			if filter(obj) {
+				res = append(res, obj)
+			}
+		}
+		return !lastPage
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (r *r2) UploadObject(key *string) (*s3manager.UploadOutput, error) {
