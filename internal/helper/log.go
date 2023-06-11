@@ -70,12 +70,9 @@ func GetLogger(key string) *zap.SugaredLogger {
 		if err != nil {
 			panic(err)
 		}
-
+		ins.Infof("logger (%v) initialized", key)
 		return ins.Named(key)
 	})
 
-	ins := val.(func() *zap.SugaredLogger)()
-
-	ins.Infof("logger (%v) initialized", key)
-	return ins
+	return val.(func() *zap.SugaredLogger)()
 }
