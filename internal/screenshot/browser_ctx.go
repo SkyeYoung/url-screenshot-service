@@ -12,9 +12,9 @@ func browserCtx(callback func(page playwright.Page) error) error {
 	if err != nil {
 		logger.Fatalf("could not launch playwright: %v", err)
 	}
-	browser, err := pw.Chromium.Launch()
+	browser, err := pw.Firefox.Launch()
 	if err != nil {
-		logger.Fatalf("could not launch Chromium: %v", err)
+		logger.Fatalf("could not launch browser: %v", err)
 	}
 	page, err := browser.NewPage(playwright.BrowserNewContextOptions{
 		Viewport: &playwright.BrowserNewContextOptionsViewport{
