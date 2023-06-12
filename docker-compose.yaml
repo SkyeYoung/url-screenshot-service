@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  url-screenshot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./config.json:/app/config.json
+      - ./screenshot:/app/screenshot
+      - ./logs:/app/log
+    ports:
+      - '8080:8080'
+    restart: unless-stopped
