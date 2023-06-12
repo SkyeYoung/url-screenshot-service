@@ -8,6 +8,8 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o service
 
+RUN go run github.com/playwright-community/playwright-go/cmd/playwright install
+
 FROM mcr.microsoft.com/playwright:v1.35.0-jammy as runner
 
 RUN mv /ms-playwright/firefox-1408 /ms-playwright/firefox-1319
@@ -24,5 +26,6 @@ FROM runner
 WORKDIR /app
 
 COPY --from=builder /app/service .
+COPY --from=builder /root/.cache/ms-playwright-go /root/.cache/ms-playwright-go
 
 CMD ["./service"]
