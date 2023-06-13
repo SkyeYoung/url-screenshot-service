@@ -8,20 +8,18 @@
 
 ## What is this for
 
-In order to preview external links within my website, I have implemented a solution. As we are aware, not all websites properly include `og` tags...
+In order to preview external links within my website, I have implemented this. As we are aware, not all websites properly include `og` tags...
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/SkyeYoung/url-screenshot-service.git
+git clone https://github.com/SkyeYoung/url-screenshot-service.git && cd url-screenshot-service
 
-cd url-screenshot-service
+# create volume dir, config
+mkdir log screenshot && cp template.config.json config.json
 
-mkdir log screenshot
-
-cp template.config.json config.json
-
-vim config.json # edit what U want
+# edit what U want
+vim config.json 
 
 sudo docker compose up -d
 ```
