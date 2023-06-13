@@ -5,5 +5,6 @@
   "bucket": "",
   "prefix": "",
   "port": "8080",
-  "enableMetrics": true
+  "enableMetrics": false,
+  "apiKey": "abc12345"
 }
