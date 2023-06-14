@@ -29,6 +29,8 @@ type Config struct {
 	// scheduler
 	ClearLocalImgJob JobConfig `json:"clearLocalImgJob"`
 	UpdateR2ImgJob   JobConfig `json:"updateR2ImgJob"`
+	// return url
+	ReturnUrl string `json:"returnUrl"`
 }
 
 func initDir(path string) error {

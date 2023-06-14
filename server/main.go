@@ -6,11 +6,13 @@ import (
 	"os"
 	"path"
 	"sync"
+	"time"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/SkyeYoung/url-screenshot-service/internal/r2"
 	"github.com/SkyeYoung/url-screenshot-service/internal/screenshot"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/idempotency"
 	"github.com/gofiber/fiber/v2/middleware/keyauth"
@@ -34,6 +36,13 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 			}
 			return false, keyauth.ErrMissingOrMalformedAPIKey
 		},
+	}))
+	app.Use(cache.New(cache.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return c.Query("refresh") == "true"
+		},
+		Expiration:   24 * time.Hour,
+		CacheControl: true,
 	}))
 
 	// root routes
@@ -60,7 +69,7 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 		logger.Info("checking if screenshot key exists")
 		if _, err := r2.HeadObject(&key); err == nil {
 			logger.Info("screenshot already exists, returning url: " + url)
-			return c.SendString(url)
+			return c.SendString(cfg.ReturnUrl + "/" + key)
 		} else {
 			logger.Infof("screenshot does not exist, because: %v", err)
 		}
@@ -84,7 +93,7 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 		}
 
 		logger.Info("returning url: " + url)
-		return c.SendString(url)
+		return c.SendString(cfg.ReturnUrl + "/" + key)
 	})
 
 	screenshotApi.Delete("/", func(c *fiber.Ctx) error {
