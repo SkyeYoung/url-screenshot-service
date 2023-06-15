@@ -17,6 +17,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/idempotency"
 	"github.com/gofiber/fiber/v2/middleware/keyauth"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
+	"github.com/gofiber/fiber/v2/utils"
 )
 
 func Start(cfg *helper.Config, wg *sync.WaitGroup) {
@@ -40,6 +41,9 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 	app.Use(cache.New(cache.Config{
 		Next: func(c *fiber.Ctx) bool {
 			return c.Query("refresh") == "true"
+		},
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return utils.CopyString(c.Path() + string(c.Request().Body()))
 		},
 		Expiration:   24 * time.Hour,
 		CacheControl: true,
