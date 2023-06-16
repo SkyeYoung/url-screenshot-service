@@ -13,10 +13,8 @@ func Screenshot(url, folderPath string) (string, error) {
 
 	var img string
 	err := browserCtx(func(page playwright.Page) error {
-		if _, e := page.Goto(url, playwright.PageGotoOptions{
-			WaitUntil: playwright.WaitUntilStateNetworkidle,
-		}); e != nil {
-			err := errors.New("could not goto url: " + url)
+		if _, e := page.Goto(url); e != nil {
+			err := errors.New("could not goto url: " + url + ", err:" + e.Error())
 			logger.Warn(err)
 			return err
 		}
