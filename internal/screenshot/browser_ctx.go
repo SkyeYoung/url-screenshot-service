@@ -12,7 +12,7 @@ func browserCtx(callback func(page playwright.Page) error) error {
 	if err != nil {
 		logger.Fatalf("could not launch playwright: %v", err)
 	}
-	browser, err := pw.Firefox.Launch()
+	browser, err := pw.Firefox.Launch(playwright.BrowserTypeLaunchOptions{})
 	if err != nil {
 		logger.Fatalf("could not launch browser: %v", err)
 	}
@@ -21,6 +21,7 @@ func browserCtx(callback func(page playwright.Page) error) error {
 			Width:  playwright.Int(1920),
 			Height: playwright.Int(1080),
 		},
+		UserAgent: playwright.String("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"),
 	})
 	if err != nil {
 		logger.Fatalf("could not create page: %v", err)
