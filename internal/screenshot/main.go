@@ -25,14 +25,17 @@ func New(folder string) Screenshot {
 	pool := tunny.NewFunc(1, func(payload interface{}) interface{} {
 		url := payload.(string)
 
-		img, err := ScreenshotCore(ctx, url, folder)
-
 		defer func() {
 			if r := recover(); r != nil {
 				ctx.Close()
 				ctx = NewCtx()
 			}
 		}()
+
+		img, err := ScreenshotCore(ctx, url, folder)
+		if err != nil {
+			panic(err)
+		}
 
 		return &Response{
 			Url: img,
