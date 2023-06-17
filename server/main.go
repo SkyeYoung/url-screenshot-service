@@ -48,7 +48,7 @@ func Start(cfg *helper.Config) {
 		}
 
 		logger.Infof("trying to get screeshot of %v", url)
-		if res := ss.GetPool().Process(url).(screenshot.Response); res.Err != nil {
+		if res := ss.GetPool().Process(url).(*screenshot.Response); res.Err != nil {
 			return res.Err
 		}
 
