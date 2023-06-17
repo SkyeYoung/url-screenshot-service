@@ -20,7 +20,7 @@ type BrowserCtx interface {
 	Close()
 }
 
-func New() BrowserCtx {
+func NewCtx() BrowserCtx {
 	logger := helper.GetLogger("server").Named("screenshot")
 	pw, err := playwright.Run()
 

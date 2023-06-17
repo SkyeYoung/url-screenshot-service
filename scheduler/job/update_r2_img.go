@@ -41,7 +41,8 @@ func (j *UpdateR2ImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Conf
 		return "", err
 	}
 
-	screenshotPool := screenshot.Pool(cfg.Prefix)
+	ss := screenshot.New(cfg.Prefix)
+	defer ss.Close()
 
 	for _, obj := range objs {
 		logger.Infof("checking image key %v", *obj.Key)
@@ -57,7 +58,7 @@ func (j *UpdateR2ImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Conf
 		}
 
 		logger.Infof("trying to get screeshot of %v", url)
-		if res := screenshotPool.Process(url).(screenshot.Response); res.Err != nil {
+		if res := ss.GetPool().Process(url).(screenshot.Response); res.Err != nil {
 			logger.Warnf(res.Err.Error())
 			continue
 		}

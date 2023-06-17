@@ -25,7 +25,8 @@ func Start(cfg *helper.Config) {
 	r2 := r2.New(cfg)
 	logger := helper.GetLogger("server")
 	screenshotApi := app.Group("/screenshot")
-	screenshotPool := screenshot.Pool(cfg.Prefix)
+	ss := screenshot.New(cfg.Prefix)
+	defer ss.Close()
 
 	screenshotApi.Post("/", func(c *fiber.Ctx) error {
 		url, err := getUrlFromRequest(c)
@@ -47,7 +48,7 @@ func Start(cfg *helper.Config) {
 		}
 
 		logger.Infof("trying to get screeshot of %v", url)
-		if res := screenshotPool.Process(url).(screenshot.Response); res.Err != nil {
+		if res := ss.GetPool().Process(url).(screenshot.Response); res.Err != nil {
 			return res.Err
 		}
 
