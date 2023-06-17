@@ -58,8 +58,9 @@ func (j *UpdateR2ImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Conf
 		}
 
 		logger.Infof("trying to get screeshot of %v", url)
-		if res := ss.GetPool().Process(url).(*screenshot.Response); res.Err != nil {
-			logger.Warnf(res.Err.Error())
+		if res := ss.GetPool().Process(url); res != nil {
+			err := res.(*screenshot.Response).Err
+			logger.Warn(err)
 			continue
 		}
 
