@@ -1,38 +1,69 @@
 package screenshot
 
 import (
-	"errors"
+	"fmt"
 	"path"
 
+	"github.com/Jeffail/tunny"
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/playwright-community/playwright-go"
 )
 
-func Screenshot(url, folderPath string) (string, error) {
+type Response struct {
+	Url string
+	Err error
+}
+
+func ScreenshotCore(bctx BrowserCtx, url, folderPath string) (string, error) {
 	logger := helper.GetLogger("server").Named("screenshot")
 
-	var img string
-	err := browserCtx(func(page playwright.Page) error {
-		if _, e := page.Goto(url); e != nil {
-			err := errors.New("could not goto url: " + url + ", err:" + e.Error())
-			logger.Warn(err)
-			return err
-		}
+	page := bctx.GetPage()
+	img := ""
 
-		img = helper.WrapImgExt(helper.EncodeImgName(url))
-		p := path.Join(folderPath, img)
-		if _, err := page.Screenshot(playwright.PageScreenshotOptions{
-			Path:    playwright.String(p),
-			Quality: playwright.Int(50),
-			Type:    helper.PlaywrightImgExt(),
-		}); err != nil {
-			err = errors.New("could not create screenshot of " + url + ", err:" + err.Error())
-			logger.Error(err)
-			return err
-		}
+	if _, e := page.Goto(url); e != nil {
+		err := fmt.Errorf("could not goto `%v`, err: %v", url, e.Error())
+		logger.Warn(err)
+		return img, err
+	}
 
-		return nil
+	img = helper.WrapImgExt(helper.EncodeImgName(url))
+	p := path.Join(folderPath, img)
+	if _, e := page.Screenshot(playwright.PageScreenshotOptions{
+		Path:    playwright.String(p),
+		Quality: playwright.Int(50),
+		Type:    helper.PlaywrightImgExt(),
+	}); e != nil {
+		err := fmt.Errorf("could not create screenshot of `%v`, err: %v", url, e.Error())
+		logger.Error(err)
+		return img, err
+	}
+
+	return img, nil
+}
+
+func Pool(folder string) *tunny.Pool {
+	ctx := New()
+	defer ctx.Close()
+
+	pool := tunny.NewFunc(1, func(payload interface{}) interface{} {
+		url := payload.(string)
+
+		img, err := ScreenshotCore(ctx, url, folder)
+
+		defer func() {
+			if r := recover(); r != nil {
+				ctx.Close()
+				ctx = New()
+			}
+		}()
+
+		return &Response{
+			Url: img,
+			Err: err,
+		}
 	})
 
-	return img, err
+	defer pool.Close()
+
+	return pool
 }

@@ -3,7 +3,6 @@ package server
 import (
 	"crypto/sha512"
 	"crypto/subtle"
-	"os"
 	"path"
 	"sync"
 	"time"
@@ -58,6 +57,7 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 	r2 := r2.New(cfg)
 	logger := helper.GetLogger("server")
 	screenshotApi := app.Group("/screenshot")
+	screenshotPool := screenshot.Pool(cfg.Prefix)
 
 	screenshotApi.Post("/", func(c *fiber.Ctx) error {
 		url, err := getUrlFromRequest(c)
@@ -68,19 +68,19 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 		logger.Infof("processing request from %v for %v", c.IP(), url)
 
 		key := path.Join(cfg.Prefix, helper.EncodeImgNameAddExt(url))
-		logger.Info(url + " generated key: " + key)
+		logger.Infof("%v generated key: %v", url, key)
 
 		logger.Info("checking if screenshot key exists")
 		if _, err := r2.HeadObject(&key); err == nil {
-			logger.Info("screenshot already exists, returning url: " + url)
+			logger.Infof("screenshot already exists, returning url: `%v`", url)
 			return c.SendString(cfg.ReturnUrl + "/" + key)
 		} else {
 			logger.Infof("screenshot does not exist, because: %v", err)
 		}
 
 		logger.Infof("trying to get screeshot of %v", url)
-		if _, err := screenshot.Screenshot(url, cfg.Prefix); err != nil {
-			return err
+		if res := screenshotPool.Process(url).(screenshot.Response); res.Err != nil {
+			return res.Err
 		}
 
 		info, err := r2.UploadObject(&key)
@@ -89,14 +89,11 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 		}
 		logger.Infof("screenshot uploaded to %v", info.Location)
 
-		if cfg.RmImgAfterUpload {
-			logger.Infof("removing local screenshot of %v", url)
-			if err := os.Remove(key); err != nil {
-				return err
-			}
+		if err := helper.RmImgAfterUpload(cfg, logger, url, key); err != nil {
+			return err
 		}
 
-		logger.Info("returning url: " + url)
+		logger.Infof("returning url: `%v`", url)
 		return c.SendString(cfg.ReturnUrl + "/" + key)
 	})
 
@@ -109,7 +106,7 @@ func Start(cfg *helper.Config, wg *sync.WaitGroup) {
 		logger.Infof("processing request from %v for %v", c.IP(), url)
 
 		key := path.Join(cfg.Prefix, helper.EncodeImgNameAddExt(url))
-		logger.Info(url + " generated key: " + key)
+		logger.Infof("%v generated key: %v", url, key)
 
 		logger.Info("trying to delete screenshot key")
 		_, err = r2.DeleteObject(&key)

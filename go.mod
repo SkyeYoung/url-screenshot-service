@@ -5,6 +5,7 @@ go 1.19
 require github.com/gofiber/fiber/v2 v2.46.0
 
 require (
+	github.com/Jeffail/tunny v0.1.4 // indirect
 	github.com/aws/aws-sdk-go v1.44.278 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

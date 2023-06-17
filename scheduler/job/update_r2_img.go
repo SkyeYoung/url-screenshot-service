@@ -3,7 +3,6 @@ package job
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -42,11 +41,12 @@ func (j *UpdateR2ImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Conf
 		return "", err
 	}
 
+	screenshotPool := screenshot.Pool(cfg.Prefix)
+
 	for _, obj := range objs {
 		logger.Infof("checking image key %v", *obj.Key)
 		url := strings.TrimPrefix(*obj.Key, cfg.Prefix+"/")
 		url = strings.TrimSuffix(url, "."+helper.GetImgExt())
-		logger.Infof("url: %v", url)
 		url, _ = helper.DecodeImgName(url)
 		logger.Infof("decoded url: %v", url)
 		url, err = helper.GetValidUrl(url)
@@ -57,8 +57,8 @@ func (j *UpdateR2ImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Conf
 		}
 
 		logger.Infof("trying to get screeshot of %v", url)
-		if _, err := screenshot.Screenshot(url, cfg.Prefix); err != nil {
-			logger.Warnf(err.Error())
+		if res := screenshotPool.Process(url).(screenshot.Response); res.Err != nil {
+			logger.Warnf(res.Err.Error())
 			continue
 		}
 
@@ -68,11 +68,8 @@ func (j *UpdateR2ImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Conf
 		}
 		logger.Infof("screenshot uploaded to %v", info.Location)
 
-		if cfg.RmImgAfterUpload {
-			logger.Infof("removing local screenshot of %v", url)
-			if err := os.Remove(*obj.Key); err != nil {
-				return "", err
-			}
+		if err := helper.RmImgAfterUpload(cfg, logger, url, *obj.Key); err != nil {
+			return "", err
 		}
 	}
 
