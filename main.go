@@ -22,10 +22,16 @@ func main() {
 	wg.Add(2)
 
 	helper.GetLogger("scheduler").Info("Starting scheduler...")
-	go scheduler.New(cfg).Start(wg)
+	go func() {
+		defer wg.Done()
+		scheduler.New(cfg).Start()
+	}()
 
 	helper.GetLogger("server").Info("Starting server...")
-	go server.Start(cfg, wg)
+	go func() {
+		defer wg.Done()
+		server.Start(cfg)
+	}()
 
 	wg.Wait()
 }

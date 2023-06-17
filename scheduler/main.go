@@ -3,7 +3,6 @@ package scheduler
 import (
 	"context"
 	"reflect"
-	"sync"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/SkyeYoung/url-screenshot-service/scheduler/job"
@@ -11,7 +10,7 @@ import (
 )
 
 type Scheduler interface {
-	Start(wg *sync.WaitGroup)
+	Start()
 }
 
 type scheduler struct {
@@ -27,9 +26,7 @@ func New(cfg *helper.Config) Scheduler {
 	}
 }
 
-func (s *scheduler) Start(wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func (s *scheduler) Start() {
 	sch := *s.sch
 	logger := helper.GetLogger("scheduler")
 

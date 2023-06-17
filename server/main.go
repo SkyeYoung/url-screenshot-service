@@ -2,7 +2,6 @@ package server
 
 import (
 	"path"
-	"sync"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 	"github.com/SkyeYoung/url-screenshot-service/internal/r2"
@@ -11,8 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 )
 
-func Start(cfg *helper.Config, wg *sync.WaitGroup) {
-	defer wg.Done()
+func Start(cfg *helper.Config) {
 	app := fiber.New()
 
 	// middleware
