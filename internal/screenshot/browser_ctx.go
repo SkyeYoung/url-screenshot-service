@@ -15,7 +15,7 @@ type browserCtx struct {
 }
 
 type BrowserCtx interface {
-	GetPage() playwright.Page
+	GetPage() *playwright.Page
 	ClosePage()
 	Close()
 }
@@ -40,7 +40,7 @@ func NewCtx() BrowserCtx {
 	}
 }
 
-func (b *browserCtx) GetPage() playwright.Page {
+func (b *browserCtx) GetPage() *playwright.Page {
 	if b.page == nil {
 		logger := helper.GetLogger("server").Named("screenshot")
 
@@ -56,7 +56,7 @@ func (b *browserCtx) GetPage() playwright.Page {
 		}
 		b.page = &page
 	}
-	return *b.page
+	return b.page
 }
 
 func (b *browserCtx) ClosePage() {

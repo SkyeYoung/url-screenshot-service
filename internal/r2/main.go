@@ -1,7 +1,7 @@
 package r2
 
 import (
-	"errors"
+	"fmt"
 	"os"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
@@ -78,7 +78,7 @@ func (r *r2) ListObjects(prefix *string, filter func(obj *s3.Object) bool) ([]*s
 func (r *r2) UploadObject(key *string) (*s3manager.UploadOutput, error) {
 	file, err := os.Open(*key)
 	if err != nil {
-		return nil, errors.New("failed to open tmp file " + *key)
+		return nil, fmt.Errorf("failed to open tmp file `%v`, err: %v", *key, err.Error())
 	}
 	uploader := s3manager.NewUploader(r.sess)
 	res, err := uploader.Upload(&s3manager.UploadInput{
@@ -87,7 +87,7 @@ func (r *r2) UploadObject(key *string) (*s3manager.UploadOutput, error) {
 		Body:   file,
 	})
 	if err != nil {
-		return nil, errors.New("failed to upload file " + *key)
+		return nil, fmt.Errorf("failed to upload file `%v`, err: %v", *key, err.Error())
 	}
 
 	return res, nil

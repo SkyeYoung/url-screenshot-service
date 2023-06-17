@@ -10,8 +10,9 @@ import (
 
 func ScreenshotCore(bctx BrowserCtx, url, folderPath string) (string, error) {
 	logger := helper.GetLogger("server").Named("screenshot")
+	logger.Infof("screenshotting `%v`", url)
 
-	page := bctx.GetPage()
+	page := *bctx.GetPage()
 	img := ""
 
 	if _, e := page.Goto(url); e != nil {
@@ -32,5 +33,6 @@ func ScreenshotCore(bctx BrowserCtx, url, folderPath string) (string, error) {
 		return img, err
 	}
 
+	logger.Infof("screenshotted `%v`", url)
 	return img, nil
 }

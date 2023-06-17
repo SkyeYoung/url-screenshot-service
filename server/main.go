@@ -49,11 +49,13 @@ func Start(cfg *helper.Config) {
 
 		logger.Infof("trying to get screeshot of %v", url)
 		if res := ss.GetPool().Process(url).(*screenshot.Response); res.Err != nil {
+			logger.Error(res.Err)
 			return res.Err
 		}
 
 		info, err := r2.UploadObject(&key)
 		if err != nil {
+			logger.Error(err)
 			return err
 		}
 		logger.Infof("screenshot uploaded to %v", info.Location)
