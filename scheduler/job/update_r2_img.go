@@ -41,7 +41,7 @@ func (j *UpdateR2ImgJob) ExecuteCore(logger *zap.SugaredLogger, cfg *helper.Conf
 		return "", err
 	}
 
-	ss := screenshot.New(cfg.Prefix)
+	ss := screenshot.New(cfg)
 	defer ss.Close()
 
 	for _, obj := range objs {

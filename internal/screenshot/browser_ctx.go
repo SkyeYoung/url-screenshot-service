@@ -20,7 +20,7 @@ type BrowserCtx interface {
 	Close()
 }
 
-func NewCtx() BrowserCtx {
+func NewCtx(cfg *helper.Config) BrowserCtx {
 	logger := helper.GetLogger("server").Named("screenshot")
 	pw, err := playwright.Run()
 
@@ -28,7 +28,9 @@ func NewCtx() BrowserCtx {
 		logger.Panicf("could not launch playwright: %v", err)
 	}
 
-	browser, err := pw.Firefox.Launch()
+	browser, err := pw.Firefox.Launch(playwright.BrowserTypeLaunchOptions{
+		Headless: playwright.Bool(cfg.Headless),
+	})
 	if err != nil {
 		logger.Panicf("could not launch browser: %v", err)
 	}

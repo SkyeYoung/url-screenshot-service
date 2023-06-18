@@ -31,6 +31,7 @@ type Config struct {
 	UpdateR2ImgJob   JobConfig `json:"updateR2ImgJob"`
 	// return url
 	ReturnUrl string `json:"returnUrl"`
+	Headless  bool   `json:"headless"`
 }
 
 func initDir(path string) error {
@@ -58,6 +59,7 @@ func SetupConfig() (*Config, error) {
 			Disable: false,
 			Cron:    "0 5 * * * *",
 		},
+		Headless: true,
 	}
 
 	viper.SetConfigName("config")

@@ -25,7 +25,7 @@ func Start(cfg *helper.Config) {
 	r2 := r2.New(cfg)
 	logger := helper.GetLogger("server")
 	screenshotApi := app.Group("/screenshot")
-	ss := screenshot.New(cfg.Prefix)
+	ss := screenshot.New(cfg)
 	defer ss.Close()
 
 	screenshotApi.Post("/", func(c *fiber.Ctx) error {

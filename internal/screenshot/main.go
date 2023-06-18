@@ -2,6 +2,7 @@ package screenshot
 
 import (
 	"github.com/Jeffail/tunny"
+	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
 )
 
 type Response struct {
@@ -19,8 +20,8 @@ type Screenshot interface {
 	Close()
 }
 
-func New(folder string) Screenshot {
-	ctx := NewCtx()
+func New(cfg *helper.Config) Screenshot {
+	ctx := NewCtx(cfg)
 
 	pool := tunny.NewFunc(1, func(payload interface{}) interface{} {
 		url := payload.(string)
@@ -28,11 +29,11 @@ func New(folder string) Screenshot {
 		defer func() {
 			if r := recover(); r != nil {
 				ctx.Close()
-				ctx = NewCtx()
+				ctx = NewCtx(cfg)
 			}
 		}()
 
-		img, err := ScreenshotCore(ctx, url, folder)
+		img, err := ScreenshotCore(ctx, url, cfg.Prefix)
 		if err != nil {
 			panic(err)
 		}
