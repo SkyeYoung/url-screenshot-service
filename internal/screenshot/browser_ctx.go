@@ -1,6 +1,7 @@
 package screenshot
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/SkyeYoung/url-screenshot-service/internal/helper"
@@ -52,6 +53,9 @@ func (b *browserCtx) GetPage() *playwright.Page {
 				Height: playwright.Int(1080),
 			},
 			UserAgent: playwright.String("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"),
+			ExtraHttpHeaders: map[string]string{
+				"Cookie": fmt.Sprintf("bid=%v", helper.RandomStr(11)),
+			},
 		})
 		if err != nil {
 			logger.Panicf("could not create page: %v", err)

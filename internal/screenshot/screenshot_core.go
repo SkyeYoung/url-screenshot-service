@@ -15,7 +15,9 @@ func ScreenshotCore(bctx BrowserCtx, url, folderPath string) (string, error) {
 	page := *bctx.GetPage()
 	img := ""
 
-	if _, e := page.Goto(url); e != nil {
+	if _, e := page.Goto(url, playwright.PageGotoOptions{
+		Referer: playwright.String("https://www.google.com/"),
+	}); e != nil {
 		err := fmt.Errorf("could not goto `%v`, err: %v", url, e.Error())
 		logger.Warn(err)
 		return img, err
